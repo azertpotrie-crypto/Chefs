@@ -21,11 +21,13 @@ export default function Ideas() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | Idea['status']>('all');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchIdeas = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log('[DEBUG] Fetching ideas from Supabase...');
         const { data, error } = await supabase
           .from('ideas')
@@ -34,11 +36,18 @@ export default function Ideas() {
 
         console.log('[DEBUG] Ideas response - data:', data, 'error:', error);
 
-        if (error) throw error;
+        if (error) {
+          const errorMsg = `[${error.code}] ${error.message}`;
+          console.error('[ERROR] Supabase error:', errorMsg);
+          setError(errorMsg);
+          throw error;
+        }
         console.log('[DEBUG] Ideas loaded:', data?.length || 0, 'items');
         setIdeas(data || []);
       } catch (error) {
-        console.error('[ERROR] Failed to fetch ideas:', error);
+        const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+        console.error('[ERROR] Failed to fetch ideas:', msg);
+        setError(`Erreur lors du chargement des idées: ${msg}`);
       } finally {
         setIsLoading(false);
       }
@@ -124,6 +133,13 @@ export default function Ideas() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 container mx-auto px-4 py-8">
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>

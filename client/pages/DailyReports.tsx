@@ -41,11 +41,13 @@ export default function DailyReports() {
   const [filterPatrol, setFilterPatrol] = useState('');
   const [uniquePatrols, setUniquePatrols] = useState<string[]>([]);
   const [uniqueDates, setUniqueDates] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log('[DEBUG] Fetching daily camp reports...');
         const { data, error } = await supabase
           .from('daily_camp_reports')
@@ -55,7 +57,9 @@ export default function DailyReports() {
         console.log('[DEBUG] Daily reports response - data:', data, 'error:', error);
 
         if (error) {
-          console.error('[ERROR] Supabase error:', error.message);
+          const errorMsg = `[${error.code}] ${error.message}`;
+          console.error('[ERROR] Supabase error:', errorMsg);
+          setError(errorMsg);
           throw error;
         }
 
@@ -64,10 +68,13 @@ export default function DailyReports() {
         // Extract unique dates and patrols for filters
         const patrols = Array.from(new Set((data || []).map((r) => r.patrol).filter(Boolean)));
         const dates = Array.from(new Set((data || []).map((r) => r.date).filter(Boolean)));
+        console.log('[DEBUG] Unique patrols found:', patrols);
         setUniquePatrols(patrols as string[]);
         setUniqueDates(dates as string[]);
       } catch (error) {
-        console.error('[ERROR] Failed to fetch daily reports:', error);
+        const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+        console.error('[ERROR] Failed to fetch daily reports:', msg);
+        setError(`Erreur lors du chargement des rapports: ${msg}`);
       } finally {
         setIsLoading(false);
       }
@@ -127,6 +134,13 @@ export default function DailyReports() {
 
         <main className="flex-1 p-6 overflow-y-auto">
           <div className="max-w-6xl mx-auto">
+            {/* Error Banner */}
+            {error && (
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700 text-sm font-medium">{error}</p>
+              </div>
+            )}
+
             {/* Title */}
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Rapports Quotidiens</h1>

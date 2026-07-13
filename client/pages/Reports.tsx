@@ -22,20 +22,32 @@ export default function Reports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchReports = async () => {
       try {
         setIsLoading(true);
+        setError(null);
+        console.log('[DEBUG] Fetching reports from Supabase...');
         const { data, error } = await supabase
           .from('reports')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        console.log('[DEBUG] Reports response - data:', data, 'error:', error);
+
+        if (error) {
+          const errorMsg = `[${error.code}] ${error.message}`;
+          console.error('[ERROR] Supabase error:', errorMsg);
+          setError(errorMsg);
+          throw error;
+        }
         setReports(data || []);
       } catch (error) {
-        console.error('Error fetching reports:', error);
+        const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+        console.error('[ERROR] Failed to fetch reports:', msg);
+        setError(`Erreur lors du chargement des rapports: ${msg}`);
       } finally {
         setIsLoading(false);
       }
@@ -94,6 +106,13 @@ export default function Reports() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 container mx-auto px-4 py-8">
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-8">
             <h1 className="section-title">Rapports Enregistrés</h1>

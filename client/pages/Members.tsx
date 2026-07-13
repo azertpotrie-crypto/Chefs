@@ -23,11 +23,13 @@ export default function Members() {
   const [members, setMembers] = useState<Member[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchMembers = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log('[DEBUG] Fetching members from Supabase...');
         const { data, error } = await supabase
           .from('members')
@@ -37,14 +39,18 @@ export default function Members() {
         console.log('[DEBUG] Members response - data:', data, 'error:', error);
 
         if (error) {
-          console.error('[ERROR] Supabase error:', error.message, error.code);
+          const errorMsg = `[${error.code}] ${error.message}`;
+          console.error('[ERROR] Supabase error:', errorMsg);
+          setError(errorMsg);
           throw error;
         }
 
         console.log('[DEBUG] Members loaded:', data?.length || 0, 'items');
         setMembers(data || []);
       } catch (error) {
-        console.error('[ERROR] Failed to fetch members:', error);
+        const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+        console.error('[ERROR] Failed to fetch members:', msg);
+        setError(`Erreur lors du chargement des membres: ${msg}`);
       } finally {
         setIsLoading(false);
       }
@@ -92,6 +98,13 @@ export default function Members() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 container mx-auto px-4 py-8">
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-8">
             <h1 className="section-title">Gestion des Membres</h1>

@@ -33,11 +33,13 @@ export default function Dashboard() {
   });
   const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
+        setError(null);
 
         // Fetch members count
         const { count: membersCount, error: membersError } = await supabase
@@ -161,7 +163,9 @@ export default function Dashboard() {
           return dateB - dateA;
         }).slice(0, 4));
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        const msg = error instanceof Error ? error.message : 'Erreur inconnue';
+        console.error('Error fetching dashboard data:', msg);
+        setError(`Erreur lors du chargement du tableau de bord: ${msg}`);
       } finally {
         setIsLoading(false);
       }
@@ -262,6 +266,13 @@ export default function Dashboard() {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <main className="flex-1 container mx-auto px-4 py-8">
+          {/* Error Banner */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
           {/* Page Title */}
           <div className="mb-8">
             <h1 className="section-title">Tableau de Bord</h1>

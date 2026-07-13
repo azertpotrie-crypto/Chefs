@@ -16,11 +16,14 @@ import Dashboard from "./pages/Dashboard";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import Members from "./pages/Members";
 import Reports from "./pages/Reports";
+import ReportView from "./pages/ReportView";
 import Sessions from "./pages/Sessions";
 import Ideas from "./pages/Ideas";
 import Account from "./pages/Account";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import DailyReports from "./pages/DailyReports";
+import DailyReportDetail from "./pages/DailyReportDetail";
 
 const queryClient = new QueryClient();
 
@@ -40,8 +43,11 @@ const App = () => (
           <Route path="/account" element={<Account />} />
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
+          <Route path="/reports/:reportId" element={<ReportView />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/ideas" element={<Ideas />} />
+          <Route path="/daily-reports" element={<DailyReports />} />
+          <Route path="/daily-reports/:patrol" element={<DailyReportDetail />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

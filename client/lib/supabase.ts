@@ -120,6 +120,33 @@ export type Database = {
           status?: 'new' | 'in_review' | 'approved' | 'rejected';
         };
       };
+      daily_camp_reports: {
+        Row: {
+          id: string;
+          user_id: string;
+          patrol: string;
+          date: string;
+          morning_rating: number | null;
+          afternoon_rating: number | null;
+          evening_rating: number | null;
+          food_rating: number | null;
+          relations_rating: number | null;
+          remarks: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          patrol: string;
+          date: string;
+          morning_rating?: number | null;
+          afternoon_rating?: number | null;
+          evening_rating?: number | null;
+          food_rating?: number | null;
+          relations_rating?: number | null;
+          remarks?: string | null;
+        };
+      };
     };
   };
 };

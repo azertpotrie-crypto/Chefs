@@ -26,15 +26,19 @@ export default function Ideas() {
     const fetchIdeas = async () => {
       try {
         setIsLoading(true);
+        console.log('[DEBUG] Fetching ideas from Supabase...');
         const { data, error } = await supabase
           .from('ideas')
           .select('*')
           .order('created_at', { ascending: false });
 
+        console.log('[DEBUG] Ideas response - data:', data, 'error:', error);
+
         if (error) throw error;
+        console.log('[DEBUG] Ideas loaded:', data?.length || 0, 'items');
         setIdeas(data || []);
       } catch (error) {
-        console.error('Error fetching ideas:', error);
+        console.error('[ERROR] Failed to fetch ideas:', error);
       } finally {
         setIsLoading(false);
       }

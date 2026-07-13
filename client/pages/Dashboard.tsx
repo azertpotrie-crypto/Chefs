@@ -83,6 +83,8 @@ export default function Dashboard() {
           .order('created_at', { ascending: false })
           .limit(2);
 
+        console.log('[DEBUG] Reports data:', reportsData, 'error:', reportsDataError);
+
         if (reportsData && !reportsDataError) {
           reportsData.forEach((report) => {
             activities.push({
@@ -119,6 +121,8 @@ export default function Dashboard() {
           .order('created_at', { ascending: false })
           .limit(1);
 
+        console.log('[DEBUG] Ideas data:', ideasData, 'error:', ideasDataError);
+
         if (ideasData && !ideasDataError) {
           ideasData.forEach((idea) => {
             activities.push({
@@ -136,6 +140,8 @@ export default function Dashboard() {
           .select('id, first_name, last_name, created_at')
           .order('created_at', { ascending: false })
           .limit(1);
+
+        console.log('[DEBUG] Members data:', membersData, 'error:', membersDataError);
 
         if (membersData && !membersDataError) {
           membersData.forEach((member) => {

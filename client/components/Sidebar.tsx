@@ -18,6 +18,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     { icon: User, label: 'Mon compte', href: '/account' },
     { icon: Users, label: 'Comptes des membres', href: '/members' },
     { icon: FileText, label: 'Rapports', href: '/reports' },
+    { icon: FileText, label: 'Rapports Quotidiens', href: '/daily-reports' },
     { icon: Calendar, label: 'Séances', href: '/sessions' },
     { icon: Lightbulb, label: 'Boîte à idées', href: '/ideas' },
   ];

@@ -180,19 +180,19 @@ export default function Reports() {
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => {
-                          // Assuming report.content contains PDF URL
-                          if (report.content.includes('http')) {
+                          if (report.content && report.content.includes('http')) {
                             navigate(`/reports/${report.id}?url=${encodeURIComponent(report.content)}`);
                           }
                         }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Voir le PDF"
+                        disabled={!report.content || !report.content.includes('http')}
                       >
                         <Eye size={18} />
                       </button>
                       <button
                         onClick={() => {
-                          if (report.content.includes('http')) {
+                          if (report.content && report.content.includes('http')) {
                             const link = document.createElement('a');
                             link.href = report.content;
                             link.download = `rapport-${report.id}.pdf`;
@@ -201,8 +201,9 @@ export default function Reports() {
                             document.body.removeChild(link);
                           }
                         }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
+                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Télécharger le PDF"
+                        disabled={!report.content || !report.content.includes('http')}
                       >
                         <Download size={18} />
                       </button>

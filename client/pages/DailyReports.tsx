@@ -52,7 +52,7 @@ export default function DailyReports() {
         const { data, error } = await supabase
           .from('daily_camp_reports')
           .select('*')
-          .order('date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         console.log('[DEBUG] Daily reports response - data:', data, 'error:', error);
 
@@ -67,7 +67,7 @@ export default function DailyReports() {
 
         // Extract unique dates and patrols for filters
         const patrols = Array.from(new Set((data || []).map((r) => r.patrol).filter(Boolean)));
-        const dates = Array.from(new Set((data || []).map((r) => r.date).filter(Boolean)));
+        const dates = Array.from(new Set((data || []).map((r) => r.created_at).filter(Boolean)));
         console.log('[DEBUG] Unique patrols found:', patrols);
         setUniquePatrols(patrols as string[]);
         setUniqueDates(dates as string[]);
@@ -87,7 +87,8 @@ export default function DailyReports() {
     const matchesSearch =
       report.patrol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (report.remarks?.toLowerCase().includes(searchTerm.toLowerCase()) || false);
-    const matchesDate = !filterDate || report.date === filterDate;
+    const reportDate = report.created_at?.split('T')[0];
+    const matchesDate = !filterDate || reportDate === filterDate;
     const matchesPatrol = !filterPatrol || report.patrol === filterPatrol;
     return matchesSearch && matchesDate && matchesPatrol;
   });
@@ -104,7 +105,8 @@ export default function DailyReports() {
     {} as Record<string, DailyReport[]>
   );
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
       year: 'numeric',
@@ -230,7 +232,7 @@ export default function DailyReports() {
                             >
                               <div className="flex justify-between items-start mb-2">
                                 <p className="text-sm text-gray-600">
-                                  <strong>Date:</strong> {formatDate(report.date)}
+                                  <strong>Date:</strong> {formatDate(report.created_at)}
                                 </p>
                                 <div className="text-right">
                                   <p className="text-xs text-gray-500">Note moyenne</p>

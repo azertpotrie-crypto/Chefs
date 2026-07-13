@@ -11,8 +11,6 @@ interface Session {
   user_id: string;
   title: string;
   description: string | null;
-  start_date: string;
-  end_date: string | null;
   location: string | null;
   responsible: string | null;
   created_at: string;
@@ -33,7 +31,7 @@ export default function Sessions() {
         const { data, error } = await supabase
           .from('sessions')
           .select('*')
-          .order('start_date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         console.log('[DEBUG] Sessions response - data:', data, 'error:', error);
 
@@ -96,16 +94,14 @@ export default function Sessions() {
     });
   };
 
-  const getSessionStatus = (startDate: string, endDate: string | null) => {
-    const start = new Date(startDate);
+  const getSessionStatus = (createdAt: string) => {
+    const created = new Date(createdAt);
     const now = new Date();
-    
-    if (start > now) return { text: 'À venir', color: 'bg-blue-100 text-blue-700' };
-    if (endDate) {
-      const end = new Date(endDate);
-      if (end < now) return { text: 'Terminée', color: 'bg-gray-100 text-gray-700' };
-    }
-    return { text: 'En cours', color: 'bg-green-100 text-green-700' };
+    const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 7) return { text: 'Récente', color: 'bg-green-100 text-green-700' };
+    if (diffDays < 30) return { text: 'En cours', color: 'bg-blue-100 text-blue-700' };
+    return { text: 'Archivée', color: 'bg-gray-100 text-gray-700' };
   };
 
   return (
@@ -135,7 +131,7 @@ export default function Sessions() {
                     const { data } = await supabase
                       .from('sessions')
                       .select('*')
-                      .order('start_date', { ascending: false });
+                      .order('created_at', { ascending: false });
                     setSessions(data || []);
                   };
                   fetchSessions();
@@ -188,7 +184,7 @@ export default function Sessions() {
             <div className="space-y-4">
               {filteredSessions.length > 0 ? (
                 filteredSessions.map((session) => {
-                  const status = getSessionStatus(session.start_date, session.end_date);
+                  const status = getSessionStatus(session.created_at);
                   return (
                     <div
                       key={session.id}
@@ -212,7 +208,7 @@ export default function Sessions() {
                           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
                             <div className="flex items-center gap-1">
                               <Calendar size={16} className="text-shm-red" />
-                              <span>{formatDate(session.start_date)}</span>
+                              <span>{formatDate(session.created_at)}</span>
                             </div>
                             {session.location && (
                               <div className="flex items-center gap-1">

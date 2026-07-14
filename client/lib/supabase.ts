@@ -87,8 +87,6 @@ export type Database = {
           user_id: string;
           title: string;
           description: string | null;
-          start_date: string;
-          end_date: string | null;
           location: string | null;
           responsible: string | null;
           created_at: string;
@@ -97,8 +95,6 @@ export type Database = {
           user_id: string;
           title: string;
           description?: string | null;
-          start_date: string;
-          end_date?: string | null;
           location?: string | null;
           responsible?: string | null;
         };
@@ -118,6 +114,30 @@ export type Database = {
           title: string;
           content: string;
           status?: 'new' | 'in_review' | 'approved' | 'rejected';
+        };
+      };
+      daily_camp_reports: {
+        Row: {
+          id: string;
+          user_id: string;
+          patrol: string;
+          morning_rating: number | null;
+          afternoon_rating: number | null;
+          evening_rating: number | null;
+          food_rating: number | null;
+          relations_rating: number | null;
+          remarks: string | null;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          patrol: string;
+          morning_rating?: number | null;
+          afternoon_rating?: number | null;
+          evening_rating?: number | null;
+          food_rating?: number | null;
+          relations_rating?: number | null;
+          remarks?: string | null;
         };
       };
     };

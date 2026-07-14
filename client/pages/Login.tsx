@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { IdCard, Lock, AlertCircle } from 'lucide-react';
+import { IdCard, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { loginChef } from '../lib/authService';
+import LoginHelpWidget from '../components/LoginHelpWidget';
+
+interface FieldErrors {
+  firstName?: string;
+  lastName?: string;
+  cin?: string;
+  password?: string;
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,38 +17,120 @@ export default function Login() {
   const [lastName, setLastName] = useState('');
   const [cin, setCin] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  const handleFieldChange = (field: keyof FieldErrors, value: string) => {
+    if (field === 'firstName') setFirstName(value);
+    if (field === 'lastName') setLastName(value);
+    if (field === 'cin') setCin(value);
+    if (field === 'password') setPassword(value);
+
+    // Supprimer l'erreur du champ quand l'utilisateur le modifie
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
     setIsLoading(true);
 
     try {
-      if (!firstName || !lastName || !cin || !password) {
-        setError('Tous les champs sont requis');
+      // Normalisation: trim automatique de tous les champs
+      const trimmedFirstName = firstName.trim();
+      const trimmedLastName = lastName.trim();
+      const trimmedCin = cin.trim();
+      const trimmedPassword = password.trim();
+
+      console.log('[DEBUG LOGIN] Données après normalisation:');
+      console.log('  firstName:', `"${trimmedFirstName}"`);
+      console.log('  lastName:', `"${trimmedLastName}"`);
+      console.log('  cin:', `"${trimmedCin}"`);
+
+      // Validation des champs requis
+      const newFieldErrors: FieldErrors = {};
+
+      if (!trimmedFirstName) {
+        newFieldErrors.firstName = 'Le prénom est requis';
+      }
+      if (!trimmedLastName) {
+        newFieldErrors.lastName = 'Le nom est requis';
+      }
+      if (!trimmedCin) {
+        newFieldErrors.cin = 'Le CIN est requis';
+      }
+      if (!trimmedPassword) {
+        newFieldErrors.password = 'Le mot de passe est requis';
+      }
+
+      if (Object.keys(newFieldErrors).length > 0) {
+        setFieldErrors(newFieldErrors);
+        setIsLoading(false);
         return;
       }
 
-      const { data, error: authError } = await loginChef(cin, password);
+      console.log('[DEBUG LOGIN] Validation OK - appel du service loginChef...');
+
+      const { data, error: authError } = await loginChef(
+        trimmedCin,
+        trimmedPassword
+      );
+
+      console.log('[DEBUG LOGIN] Réponse du service:');
+      console.log('  error:', authError);
+      console.log('  data:', data);
 
       if (authError) {
         setError(authError);
+        console.log('[DEBUG LOGIN] Erreur d\'authentification:', authError);
+        setIsLoading(false);
         return;
       }
 
       if (data) {
-        // Verify name matches
-        if (data.first_name !== firstName || data.last_name !== lastName) {
-          setError('Le nom ou prénom ne correspond pas au CIN');
+        console.log('[DEBUG LOGIN] Vérification du nom/prénom...');
+        console.log('  Formulaire - firstName:', `"${trimmedFirstName}"`, '| lastName:', `"${trimmedLastName}"`);
+        console.log('  BD - first_name:', `"${data.first_name}"`, '| last_name:', `"${data.last_name}"`);
+
+        // Verify name matches (case-insensitive and trimmed)
+        if (
+          data.first_name.trim().toLowerCase() !==
+            trimmedFirstName.toLowerCase() ||
+          data.last_name.trim().toLowerCase() !== trimmedLastName.toLowerCase()
+        ) {
+          const newErrors: FieldErrors = {};
+          if (
+            data.first_name.trim().toLowerCase() !==
+            trimmedFirstName.toLowerCase()
+          ) {
+            newErrors.firstName = 'Le prénom ne correspond pas au CIN';
+          }
+          if (
+            data.last_name.trim().toLowerCase() !==
+            trimmedLastName.toLowerCase()
+          ) {
+            newErrors.lastName = 'Le nom ne correspond pas au CIN';
+          }
+          setFieldErrors(newErrors);
+          console.log('[DEBUG LOGIN] Erreur: nom/prénom ne correspondent pas');
+          setIsLoading(false);
           return;
         }
+
+        console.log('[DEBUG LOGIN] Authentification réussie! Redirection...');
         navigate('/dashboard');
       }
     } catch (err) {
       setError('Erreur de connexion. Veuillez réessayer.');
-      console.error(err);
+      console.error('[ERROR LOGIN]', err);
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +138,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
+      <LoginHelpWidget />
       <div className="w-full max-w-md">
         <div className="bg-white rounded-lg shadow-xl p-8 animate-fade-in">
           {/* Header */}
@@ -57,14 +148,19 @@ export default function Login() {
               alt="SHM Logo"
               className="w-24 h-24 mx-auto mb-4"
             />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Portail des Chefs</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Portail des Chefs
+            </h1>
             <p className="text-gray-600">Connexion à votre compte</p>
           </div>
 
-          {/* Error Message */}
+          {/* General Error Message */}
           {error && (
             <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-slide-down">
-              <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+              <AlertCircle
+                className="text-red-600 flex-shrink-0 mt-0.5"
+                size={20}
+              />
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           )}
@@ -74,67 +170,127 @@ export default function Login() {
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nom *
                 </label>
                 <input
                   type="text"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange('lastName', e.target.value)
+                  }
                   placeholder="Dupont"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    fieldErrors.lastName
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-shm-red'
+                  }`}
                   required
                 />
+                {fieldErrors.lastName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {fieldErrors.lastName}
+                  </p>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Prénom *
                 </label>
                 <input
                   type="text"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange('firstName', e.target.value)
+                  }
                   placeholder="Jean"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    fieldErrors.firstName
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-shm-red'
+                  }`}
                   required
                 />
+                {fieldErrors.firstName && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {fieldErrors.firstName}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* CIN */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Numéro CIN *
               </label>
               <div className="relative">
-                <IdCard className="absolute left-3 top-3 text-gray-400" size={20} />
+                <IdCard
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={20}
+                />
                 <input
                   type="text"
                   value={cin}
-                  onChange={(e) => setCin(e.target.value)}
+                  onChange={(e) => handleFieldChange('cin', e.target.value)}
                   placeholder="Votre numéro CIN"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    fieldErrors.cin
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-shm-red'
+                  }`}
                   required
                 />
               </div>
+              {fieldErrors.cin && (
+                <p className="text-red-500 text-xs mt-1">{fieldErrors.cin}</p>
+              )}
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Mot de passe *
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
+                <Lock
+                  className="absolute left-3 top-3 text-gray-400"
+                  size={20}
+                />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange('password', e.target.value)
+                  }
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-shm-red focus:border-transparent outline-none transition"
+                  className={`w-full pl-10 pr-10 py-2 border rounded-lg focus:ring-2 focus:border-transparent outline-none transition ${
+                    fieldErrors.password
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'border-gray-300 focus:ring-shm-red'
+                  }`}
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-gray-600 hover:text-gray-900 transition-colors"
+                  aria-label={
+                    showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'
+                  }
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
+                </button>
               </div>
+              {fieldErrors.password && (
+                <p className="text-red-500 text-xs mt-1">
+                  {fieldErrors.password}
+                </p>
+              )}
             </div>
 
             {/* Login Button */}

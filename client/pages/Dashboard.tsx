@@ -15,6 +15,7 @@ interface Stats {
 }
 
 interface Activity {
+  id: string;
   type: 'report' | 'session' | 'idea' | 'member';
   title: string;
   date: string;
@@ -90,6 +91,7 @@ export default function Dashboard() {
         if (reportsData && !reportsDataError) {
           reportsData.forEach((report) => {
             activities.push({
+              id: `report-${report.id}`,
               type: 'report',
               title: `Rapport: ${report.title}`,
               date: formatDate(report.created_at),
@@ -101,16 +103,17 @@ export default function Dashboard() {
         // Get recent sessions
         const { data: sessionsData, error: sessionsDataError } = await supabase
           .from('sessions')
-          .select('id, title, start_date')
-          .order('start_date', { ascending: false })
+          .select('id, title, created_at')
+          .order('created_at', { ascending: false })
           .limit(1);
 
         if (sessionsData && !sessionsDataError) {
           sessionsData.forEach((session) => {
             activities.push({
+              id: `session-${session.id}`,
               type: 'session',
               title: `Séance: ${session.title}`,
-              date: formatDate(session.start_date),
+              date: formatDate(session.created_at),
               icon: Calendar,
             });
           });
@@ -128,6 +131,7 @@ export default function Dashboard() {
         if (ideasData && !ideasDataError) {
           ideasData.forEach((idea) => {
             activities.push({
+              id: `idea-${idea.id}`,
               type: 'idea',
               title: `Idée: ${idea.title}`,
               date: formatDate(idea.created_at),
@@ -148,6 +152,7 @@ export default function Dashboard() {
         if (membersData && !membersDataError) {
           membersData.forEach((member) => {
             activities.push({
+              id: `member-${member.id}`,
               type: 'member',
               title: `Nouveau membre: ${member.first_name} ${member.last_name}`,
               date: formatDate(member.created_at),
@@ -321,9 +326,9 @@ export default function Dashboard() {
 
                 {recentActivity.length > 0 ? (
                   <div className="space-y-4">
-                    {recentActivity.map(({ type, title, date, icon: Icon }) => (
+                    {recentActivity.map(({ id, type, title, date, icon: Icon }) => (
                       <div
-                        key={`${type}-${date}`}
+                        key={id}
                         className="flex items-start gap-4 pb-4 border-b border-gray-200 last:border-0 hover:bg-gray-50 p-2 rounded transition-colors"
                       >
                         <div className="bg-gray-100 p-3 rounded-lg flex-shrink-0 mt-1">

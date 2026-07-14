@@ -9,7 +9,6 @@ import Footer from '../components/Footer';
 interface DailyReport {
   id: string;
   patrol: string;
-  date: string;
   morning_rating: number | null;
   afternoon_rating: number | null;
   evening_rating: number | null;
@@ -47,7 +46,7 @@ export default function DailyReportDetail() {
           .from('daily_camp_reports')
           .select('*')
           .eq('patrol', patrol)
-          .order('date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         console.log('[DEBUG] Reports for patrol response - data:', data, 'error:', error);
 
@@ -121,7 +120,7 @@ export default function DailyReportDetail() {
                     >
                       <div className="mb-6 pb-6 border-b border-gray-200">
                         <p className="text-lg font-semibold text-gray-900 mb-2">
-                          📅 {formatDate(report.date)}
+                          📅 {formatDate(report.created_at)}
                         </p>
                         <p className="text-sm text-gray-500">
                           Enregistré le {new Date(report.created_at).toLocaleString('fr-FR')}

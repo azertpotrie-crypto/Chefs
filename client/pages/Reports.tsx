@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Trash2, Edit, Eye, Download } from 'lucide-react';
+import { Search, Eye, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
@@ -184,9 +184,8 @@ export default function Reports() {
                             navigate(`/reports/${report.id}?url=${encodeURIComponent(report.content)}`);
                           }
                         }}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title="Voir le PDF"
-                        disabled={!report.content || !report.content.includes('http')}
                       >
                         <Eye size={18} />
                       </button>
@@ -201,14 +200,10 @@ export default function Reports() {
                             document.body.removeChild(link);
                           }
                         }}
-                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="p-2 text-green-600 hover:bg-green-50 rounded transition-colors"
                         title="Télécharger le PDF"
-                        disabled={!report.content || !report.content.includes('http')}
                       >
                         <Download size={18} />
-                      </button>
-                      <button className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors" title="Supprimer">
-                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
